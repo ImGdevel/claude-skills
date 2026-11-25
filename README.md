@@ -24,6 +24,7 @@ thinking-tools의 grilling을 뺀 5개는 `/thinking-tools:grill-me`처럼 슬�
 외부 스킬 팩은 원칙적으로 이 저장소에 복사하지 않고, 원본 마켓플레이스에서 설치해 업데이트를 받습니다. 원본 팩에서 일부만 필요할 때만 예외로 골라 복사하고, 그 출처를 `SOURCE.md`에 남깁니다.
 
 - `agent-skills@addy-agent-skills`: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills)
+- `humanizer@humanizer`: [blader/humanizer](https://github.com/blader/humanizer) (AI 티 나는 글 다듬기)
 
 ## 연결 방식
 
@@ -32,7 +33,8 @@ thinking-tools의 grilling을 뺀 5개는 `/thinking-tools:grill-me`처럼 슬�
 ```json
 "extraKnownMarketplaces": {
   "my-skills": { "source": { "source": "directory", "path": "C:/Users/imdls/workspace/claude-skills" } },
-  "addy-agent-skills": { "source": { "source": "github", "repo": "addyosmani/agent-skills" }, "autoUpdate": true }
+  "addy-agent-skills": { "source": { "source": "github", "repo": "addyosmani/agent-skills" }, "autoUpdate": true },
+  "humanizer": { "source": { "source": "github", "repo": "blader/humanizer" }, "autoUpdate": true }
 },
 "enabledPlugins": {
   "dev-workflow@my-skills": true,
@@ -40,7 +42,8 @@ thinking-tools의 grilling을 뺀 5개는 `/thinking-tools:grill-me`처럼 슬�
   "ui-design@my-skills": true,
   "skill-ops@my-skills": true,
   "thinking-tools@my-skills": true,
-  "agent-skills@addy-agent-skills": true
+  "agent-skills@addy-agent-skills": true,
+  "humanizer@humanizer": true
 }
 ```
 

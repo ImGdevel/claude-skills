@@ -97,6 +97,8 @@ marketplace.json의 `name`(마켓플레이스 이름)과 `plugins[].name`을 읽
 
 CLI로 검증하고 설치까지 끝낸다. Windows 데스크톱 앱에서는 `claude`가 PATH에 없을 수 있다. 그럴 때는 `%LOCALAPPDATA%\Claude-Data\*\claude-code\<버전>\*\claude.exe`에서 찾는다.
 
+`claude plugin marketplace add`는 settings.json의 `extraKnownMarketplaces`를 다시 쓰면서 기존 항목의 `autoUpdate`를 지운다. 마켓플레이스를 추가한 뒤에는 원본 마켓플레이스의 `autoUpdate: true`가 남아 있는지 확인하고, 없으면 다시 넣는다.
+
 ```bash
 claude plugin validate <repo>
 claude plugin marketplace add <repo 경로 또는 owner/repo>
