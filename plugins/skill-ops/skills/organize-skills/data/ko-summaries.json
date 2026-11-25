@@ -1,0 +1,250 @@
+{
+  "agent-skills:accessibility-engineering": {
+    "ko": "화면이 WCAG 2.2 AA 접근성 기준을 지키는지 점검하고 위반 사항을 고친다 (axe-core, 스크린 리더, 색 대비).",
+    "src": "4aecffe712"
+  },
+  "agent-skills:api-and-interface-design": {
+    "ko": "REST·GraphQL API나 모듈 경계처럼 밖으로 드러나는 인터페이스를 오래 버티게 설계한다.",
+    "src": "96c02c8750"
+  },
+  "agent-skills:browser-testing-with-devtools": {
+    "ko": "Chrome DevTools MCP로 실제 브라우저에서 DOM, 콘솔 오류, 네트워크, 성능을 확인한다.",
+    "src": "4a50fbc2d2"
+  },
+  "agent-skills:ci-cd-and-automation": {
+    "ko": "CI/CD 파이프라인을 만들거나 고친다. 테스트·품질 검사 자동화와 배포 전략 설정.",
+    "src": "fdf8036db7"
+  },
+  "agent-skills:code-review-and-quality": {
+    "ko": "정확성·가독성·구조·보안·성능 여러 축으로 코드 리뷰를 한다. 병합 전에 쓴다.",
+    "src": "4f38d41148"
+  },
+  "agent-skills:code-simplification": {
+    "ko": "동작은 그대로 두고 복잡해진 코드를 읽기 쉽게 단순화한다.",
+    "src": "dc7cabc033"
+  },
+  "agent-skills:constraint-driven-development": {
+    "ko": "품질 기준(커버리지, 성능, 접근성 등)을 CONSTRAINTS.md로 정하고, 에이전트가 테스트 건너뛰기·경고 끄기로 기준을 몰래 낮추지 못하게 막는다.",
+    "src": "992b347fe5"
+  },
+  "agent-skills:context-engineering": {
+    "ko": "규칙 파일과 컨텍스트 구성을 손봐 에이전트 결과 품질을 높인다. 새 세션을 시작하거나 품질이 떨어질 때.",
+    "src": "bd03cf0bac"
+  },
+  "agent-skills:debugging-and-error-recovery": {
+    "ko": "테스트 실패, 빌드 깨짐, 예상 밖 동작의 근본 원인을 체계적으로 찾아 최소한으로 고친다.",
+    "src": "30493c778e"
+  },
+  "agent-skills:deprecation-and-migration": {
+    "ko": "오래된 시스템·API·기능을 없애거나 새 구현으로 옮긴다. 무중단 DB 스키마 변경 포함.",
+    "src": "44c746896a"
+  },
+  "agent-skills:documentation-and-adrs": {
+    "ko": "아키텍처 결정(ADR)과 문서를 남기고, 문서가 코드와 어긋났는지 찾아낸다.",
+    "src": "6ebe914e61"
+  },
+  "agent-skills:doubt-driven-development": {
+    "ko": "중요한 결정마다 새 컨텍스트의 반대 검토를 거쳐 숨은 실패 가능성을 찾는다. 위험이 큰 작업용.",
+    "src": "97c4aa43b7"
+  },
+  "agent-skills:frontend-ui-engineering": {
+    "ko": "접근성과 반응형을 갖춘 실서비스 수준의 UI 컴포넌트와 페이지를 만든다.",
+    "src": "a883ddd0b7"
+  },
+  "agent-skills:git-workflow-and-versioning": {
+    "ko": "커밋, 브랜치, 충돌 해결, PR, 릴리스 버전과 변경 기록 등 git 작업 방식을 잡아 준다.",
+    "src": "167e0ae7f2"
+  },
+  "agent-skills:idea-refine": {
+    "ko": "막연한 아이디어를 넓게 펼쳤다가 좁혀서 실행할 수 있는 구체안으로 다듬는다.",
+    "src": "671388eaa7"
+  },
+  "agent-skills:incremental-implementation": {
+    "ko": "여러 파일에 걸친 변경을 작고 검증 가능한 단위로 나눠 차례로 구현한다.",
+    "src": "b2766b0100"
+  },
+  "agent-skills:interview-me": {
+    "ko": "한 번에 하나씩 질문하며 사용자가 실제로 원하는 것을 파악한다. 요청이 모호할 때.",
+    "src": "ffe8dc30dc"
+  },
+  "agent-skills:observability-and-instrumentation": {
+    "ko": "로그, 메트릭, 트레이싱, 알림을 넣어 운영 중 동작을 보이게 한다.",
+    "src": "ac8a7efeb5"
+  },
+  "agent-skills:performance-optimization": {
+    "ko": "프론트·백엔드·쿼리·DB 성능 문제를 측정하고 개선한다 (Core Web Vitals, N+1 쿼리 등).",
+    "src": "4f0a35d8a3"
+  },
+  "agent-skills:planning-and-task-breakdown": {
+    "ko": "명세나 요구사항을 순서 있는 구현 작업 목록으로 쪼갠다.",
+    "src": "71fc26ba90"
+  },
+  "agent-skills:security-and-hardening": {
+    "ko": "입력 처리, 인증, 세션, 외부 연동, 의존성의 보안 취약점을 점검하고 막는다 (OWASP Top 10).",
+    "src": "202b9cd93d"
+  },
+  "agent-skills:shipping-and-launch": {
+    "ko": "운영 배포 전 체크리스트, 모니터링, 단계적 출시, 롤백 계획을 준비한다.",
+    "src": "369b2bf8ae"
+  },
+  "agent-skills:source-driven-development": {
+    "ko": "구현 결정을 공식 문서로 확인하고 출처를 남기며 코딩한다.",
+    "src": "4c0037360b"
+  },
+  "agent-skills:spec-driven-development": {
+    "ko": "코딩 전에 명세(PRD, 요구사항 문서)를 먼저 쓴다. 새 프로젝트나 큰 변경을 시작할 때.",
+    "src": "5e08f1db07"
+  },
+  "agent-skills:test-driven-development": {
+    "ko": "실패하는 테스트를 먼저 쓰고 코드를 고치는 red-green-refactor 방식으로 개발한다.",
+    "src": "33d378289c"
+  },
+  "agent-skills:using-agent-skills": {
+    "ko": "지금 작업에 어떤 스킬을 쓸지 고르는 안내 스킬. 세션을 시작할 때 쓴다.",
+    "src": "9734edd65f"
+  },
+  "caveman:cavecrew": {
+    "ko": "코드 찾기·작은 수정·diff 리뷰를 caveman 서브에이전트에게 맡길지 정하는 안내.",
+    "src": "9955b0943a"
+  },
+  "caveman:caveman": {
+    "ko": "원시인 말투로 짧게 답해 토큰을 약 75% 줄이는 대화 모드. 강도(lite/full/ultra)를 고를 수 있다.",
+    "src": "a8aef6e791"
+  },
+  "caveman:caveman-commit": {
+    "ko": "군더더기 없는 Conventional Commits 형식의 커밋 메시지를 만든다.",
+    "src": "cf54dd0de6"
+  },
+  "caveman:caveman-compress": {
+    "ko": "CLAUDE.md 같은 메모 파일을 압축 문체로 바꿔 입력 토큰을 줄인다. 원본은 백업해 둔다.",
+    "src": "896b9340a8"
+  },
+  "caveman:caveman-help": {
+    "ko": "caveman 모드·스킬·명령 요약표를 보여 준다.",
+    "src": "fc0fcb630c"
+  },
+  "caveman:caveman-review": {
+    "ko": "위치·문제·해결을 한 줄로 쓰는 짧은 코드 리뷰 코멘트를 만든다.",
+    "src": "63c467ab52"
+  },
+  "caveman:caveman-stats": {
+    "ko": "현재 세션의 실제 토큰 사용량과 절약량을 보여 준다.",
+    "src": "61de6354d8"
+  },
+  "dev-workflow:verified-build": {
+    "ko": "명세 → 독립 테스트 → 여러 구현 병렬 시도 → 반대 검증을 거쳐 가장 나은 구현을 고른다. 정확도가 중요한 어려운 코딩용.",
+    "src": "eac0b44da0"
+  },
+  "humanizer:humanizer": {
+    "ko": "AI가 쓴 티가 나는 글을 내용은 그대로 두고 사람이 쓴 글처럼 다듬는다.",
+    "src": "e47910220e"
+  },
+  "orca-computer-use": {
+    "ko": "Orca로 로컬 앱 창을 백그라운드에서 클릭·입력하며 조작한다. 다른 방법이 없을 때만 쓴다.",
+    "src": "799f44e9fc"
+  },
+  "orca-linear": {
+    "ko": "Orca CLI로 Linear 티켓을 다룬다 (상태 변경, 완료 코멘트, 후속 티켓 만들기).",
+    "src": "d5f3001599"
+  },
+  "orchestration": {
+    "ko": "작업을 Orca 워커 에이전트(Codex 등)에게 나눠 맡기고 결과를 받는다.",
+    "src": "1ca63148e2"
+  },
+  "skill-ops:organize-skills": {
+    "ko": "흩어진 스킬을 개인 플러그인 저장소로 정리하고, 외부 스킬 추가와 이 목록 페이지 생성을 맡는다.",
+    "src": "471b64844d"
+  },
+  "synced:built-in-browser": {
+    "ko": "데스크톱 앱 안의 브라우저 창을 쓸 때 먼저 읽는 안내.",
+    "src": "719f768874"
+  },
+  "synced:chrome-browser": {
+    "ko": "내 Chrome(Claude in Chrome 확장)으로 웹을 다룰 때 먼저 읽는 안내.",
+    "src": "470db4dc02"
+  },
+  "synced:computer-use": {
+    "ko": "데스크톱 앱을 스크린샷·클릭·입력으로 조작할 때 먼저 읽는 안내.",
+    "src": "d3ecdd11b1"
+  },
+  "synced:deep-research": {
+    "ko": "여러 출처를 조사하고 비교해 긴 보고서로 정리한다.",
+    "src": "197fcae94f"
+  },
+  "synced:docs": {
+    "ko": "공유와 댓글이 되는 Claude 문서를 만든다. 보고서, 제안서, 이력서 같은 일반 문서 작성의 기본.",
+    "src": "72df6a1406"
+  },
+  "synced:docx": {
+    "ko": "Word 문서를 만들고, 읽고, 고친다.",
+    "src": "2f24ec7649"
+  },
+  "synced:google-workspace": {
+    "ko": "Google 드라이브·문서·시트·슬라이드 파일을 만들거나 고칠 때 쓰는 안내.",
+    "src": "0f817788f9"
+  },
+  "synced:import-memory": {
+    "ko": "다른 AI 비서에서 내보낸 메모리를 Claude 메모리로 가져온다.",
+    "src": "17a5135a62"
+  },
+  "synced:morning": {
+    "ko": "아침 브리핑을 HTML 페이지로 만들거나 평일 반복 작업으로 설정한다.",
+    "src": "0a395a2511"
+  },
+  "synced:pdf": {
+    "ko": "PDF 읽기, 텍스트·표 추출, 합치기, 나누기, 회전, 양식 작성 등 PDF 작업 전반.",
+    "src": "3995addf1c"
+  },
+  "synced:pptx": {
+    "ko": "PowerPoint 슬라이드를 만들고, 읽고, 고친다.",
+    "src": "36f3df5a8b"
+  },
+  "synced:skill-creator": {
+    "ko": "새 스킬을 만들고, 테스트로 평가하며 개선한다.",
+    "src": "08ae5d15ea"
+  },
+  "synced:xlsx": {
+    "ko": "엑셀·CSV 파일을 열고, 고치고, 만들고, 분석한다.",
+    "src": "18b447bdff"
+  },
+  "system-tools:disk-report": {
+    "ko": "윈도우 드라이브 사용량을 분류별로 측정해 보고서 페이지로 만든다. 아무것도 지우지 않는다.",
+    "src": "c90b1413a6"
+  },
+  "thinking-tools:grill-me": {
+    "ko": "계획이나 설계를 집요한 질문으로 다듬는다. 내부에서 grilling을 불러 쓴다.",
+    "src": "78f322adb1"
+  },
+  "thinking-tools:grilling": {
+    "ko": "계획·결정에 대한 질문을 라운드별로 묶어 추천 답과 함께 던지고, 빠진 결정이 없을 때까지 함께 정리한다.",
+    "src": "6dbdc02051"
+  },
+  "thinking-tools:handoff": {
+    "ko": "지금 대화를 다음 세션이 이어받을 인수인계 문서로 정리한다. 민감 정보는 가린다.",
+    "src": "34746f8be5"
+  },
+  "thinking-tools:teach": {
+    "ko": "주제를 여러 세션에 걸쳐 가르친다. 수업 HTML, 참고 노트, 학습 기록을 지금 폴더에 쌓는다.",
+    "src": "129e02e9a9"
+  },
+  "thinking-tools:to-questionnaire": {
+    "ko": "혼자 답하기 어려운 결정을 다른 사람이 채워 줄 질문지 문서로 만든다.",
+    "src": "c726838422"
+  },
+  "thinking-tools:wait-what": {
+    "ko": "방금 설명이 이해되지 않을 때 더 쉬운 말로 다시 설명하게 한다.",
+    "src": "0b422493e7"
+  },
+  "ui-design:extract-design": {
+    "ko": "실제 사이트에서 색·폰트·간격·컴포넌트 디자인 토큰을 뽑는다 (Dembrandt). DESIGN.md, Tailwind, shadcn으로 출력.",
+    "src": "3221c9a0b0"
+  },
+  "ui-design:generate-ui-from-brand": {
+    "ko": "URL이나 DESIGN.md를 디자인 토큰으로 정리한 뒤 UI 명세로 바꾼다.",
+    "src": "f32f7bc9de"
+  },
+  "ui-design:unslop": {
+    "ko": "AI가 만든 티가 나는 UI를 간격·색·문구·글꼴 순서로 손봐 개성 있는 디자인으로 바꾼다.",
+    "src": "d93edd1419"
+  }
+}

@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // Build a one-page catalog of every Claude Code plugin and skill on this machine.
 // Reads ~/.claude settings and plugin records; writes a self-contained HTML file.
-// Usage: node catalog.mjs [--out <file.html>] [--json <file.json>] [--open | --app] [--install-shortcut [name]]
+// Usage: node catalog.mjs [--out <file.html>] [--json <file.json>] [--open | --app [--no-fill]] [--fill-ko] [--install-shortcut [name]]
+// Korean one-line summaries live in ../data/ko-summaries.json; --fill-ko asks the claude CLI (haiku) for missing ones.
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -199,15 +201,97 @@ const data = {
   disabledMarketplaces: Object.keys(known).filter(m => !plugins.some(p => p.marketplace === m)),
 };
 
+// ---------- Korean summaries ----------
+// data/ko-summaries.json: { "<id>": { "ko": "한글 요약", "src": "<hash of the description it was written from>" } }
+// A summary whose src no longer matches the description is shown but marked stale, and refilled by --fill-ko.
+const KO_FILE = path.join(HERE, '..', 'data', 'ko-summaries.json');
+const hash = (s) => crypto.createHash('sha1').update(s || '').digest('hex').slice(0, 10);
+const looseId = (s) => (s.kind === 'synced' ? `synced:${s.name}` : s.name);
+const everySkill = () => [...plugins.flatMap(p => p.skills), ...loose.map(s => Object.assign(s, { id: looseId(s) }))];
+
+function attachKo() {
+  const ko = readJson(KO_FILE, {});
+  let missing = 0;
+  for (const s of everySkill()) {
+    const e = ko[s.id];
+    s.ko = e?.ko || '';
+    s.koStale = !!e && e.src !== hash(s.description);
+    if (!s.ko || s.koStale) missing++;
+  }
+  data.koMissing = missing;
+  return ko;
+}
+
+// Find the Claude Code CLI: PATH first, then the copy bundled with the desktop app (newest version).
+function findClaude() {
+  const onPath = (process.env.PATH || '').split(path.delimiter).map(d => path.join(d, process.platform === 'win32' ? 'claude.exe' : 'claude')).find(exists);
+  if (onPath) return onPath;
+  const roots = [path.join(HOME, '.local', 'bin', 'claude.exe'), path.join(HOME, '.local', 'bin', 'claude')].filter(exists);
+  if (roots.length) return roots[0];
+  const base = path.join(process.env.LOCALAPPDATA || '', 'Claude-Data');
+  const found = [];
+  for (const acct of lsDirs(base)) for (const ver of lsDirs(path.join(base, acct, 'claude-code'))) for (const build of lsDirs(path.join(base, acct, 'claude-code', ver))) {
+    const exe = path.join(base, acct, 'claude-code', ver, build, 'claude.exe');
+    if (exists(exe)) found.push({ exe, t: fs.statSync(exe).mtimeMs });
+  }
+  return found.sort((a, b) => b.t - a.t)[0]?.exe;
+}
+
+// Ask Claude (haiku) for one-line Korean summaries of the skills that lack a fresh one. Writes KO_FILE.
+async function fillKo() {
+  const ko = attachKo();
+  const todo = everySkill().filter(s => (!s.ko || s.koStale) && s.description);
+  if (!todo.length) { console.log('ko summaries: nothing to fill'); return 0; }
+  const claude = findClaude();
+  if (!claude) { console.error('ko summaries: claude CLI not found'); return 0; }
+  const items = todo.map(s => ({ id: s.id, description: s.description.slice(0, 1200) }));
+  const prompt = [
+    'You write one-line Korean summaries for a skill catalog page. Do not use any tools.',
+    'Input (stdin) is a JSON array of {id, description}. Each description says what an AI agent skill does and when it is used.',
+    'For each item write ONE Korean sentence of at most 80 characters that tells a Korean reader what the skill does and, if it fits, when to use it.',
+    'Plain 해라체 statement style ending in -다 (e.g. "…를 점검하고 고친다."). Keep product and tool names in their original spelling. No marketing words, no emoji, no markdown.',
+    'Output ONLY a JSON object mapping each id to its Korean summary, nothing before or after it.',
+  ].join('\n');
+  const out = await new Promise((resolve) => {
+    const child = execFile(claude, ['-p', prompt, '--model', 'haiku', '--max-turns', '1', '--output-format', 'text'],
+      { cwd: os.tmpdir(), maxBuffer: 8 * 1024 * 1024, timeout: 180000, windowsHide: true },
+      (err, stdout, stderr) => { if (err) console.error('ko summaries: claude failed:', (stderr || err.message).slice(0, 300)); resolve(stdout || ''); });
+    child.stdin.end(JSON.stringify(items));
+  });
+  const m = out.match(/\{[\s\S]*\}/);
+  let got = {};
+  try { got = m ? JSON.parse(m[0]) : {}; } catch { console.error('ko summaries: could not parse reply'); }
+  let n = 0;
+  for (const s of todo) {
+    const t = typeof got[s.id] === 'string' ? got[s.id].trim() : '';
+    if (t) { ko[s.id] = { ko: t, src: hash(s.description), auto: true }; n++; }
+  }
+  if (n) {
+    const sorted = Object.fromEntries(Object.keys(ko).sort().map(k => [k, ko[k]]));
+    fs.mkdirSync(path.dirname(KO_FILE), { recursive: true });
+    fs.writeFileSync(KO_FILE, JSON.stringify(sorted, null, 2) + '\n');
+  }
+  console.log(`ko summaries: filled ${n} of ${todo.length}`);
+  return n;
+}
+
 // ---------- render ----------
-const tpl = fs.readFileSync(path.join(HERE, 'catalog-template.html'), 'utf8');
-const json = JSON.stringify(data).replace(/</g, '\\u003c');
-fs.writeFileSync(OUT, tpl.replace('/*__CATALOG_DATA__*/null', json));
-if (JSON_OUT) fs.writeFileSync(JSON_OUT, JSON.stringify(data, null, 2));
+function render() {
+  attachKo();
+  const tpl = fs.readFileSync(path.join(HERE, 'catalog-template.html'), 'utf8');
+  const json = JSON.stringify(data).replace(/</g, '\\u003c');
+  fs.writeFileSync(OUT, tpl.replace('/*__CATALOG_DATA__*/null', json));
+  if (JSON_OUT) fs.writeFileSync(JSON_OUT, JSON.stringify(data, null, 2));
+}
+
+if (args.includes('--fill-ko')) await fillKo();
+render();
 
 const nSkills = plugins.reduce((n, p) => n + p.skills.length, 0);
-console.log(`plugins ${plugins.length} (enabled ${plugins.filter(p => p.enabled).length}), plugin skills ${nSkills}, other skills ${loose.length}`);
-console.log(`wrote ${OUT}`);
+if (!args.includes('--quiet')) {
+  console.log(`plugins ${plugins.length} (enabled ${plugins.filter(p => p.enabled).length}), plugin skills ${nSkills}, other skills ${loose.length}, ko summaries missing ${data.koMissing}`);
+  console.log(`wrote ${OUT}`);
+}
 // --app: open in a chromeless Edge/Chrome window so it feels like a small desktop app.
 function appBrowser() {
   const pf86 = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)';
@@ -234,6 +318,11 @@ if (args.includes('--app')) {
     const child = spawn(browser, [`--app=${url}`, '--window-size=1200,900'], { detached: true, stdio: 'ignore' });
     child.unref();
   } else openDefault(OUT);
+  // New or changed skills without a Korean summary: fill them in the background for the next open.
+  if (data.koMissing > 0 && !args.includes('--no-fill')) {
+    const bg = spawn(process.execPath, [fileURLToPath(import.meta.url), '--fill-ko', '--quiet', '--out', OUT], { detached: true, stdio: 'ignore', windowsHide: true });
+    bg.unref();
+  }
 } else if (args.includes('--open')) {
   openDefault(OUT);
 }
