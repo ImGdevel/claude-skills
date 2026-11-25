@@ -16,8 +16,12 @@ plugins/<plugin>/
 | dev-workflow | verified-build |
 | system-tools | disk-report |
 | ui-design | unslop (CC BY 4.0, Damir Sokolovsky) |
+| skill-ops | organize-skills (스킬 정리·추가 절차) |
+| thinking-tools | grill-me, grilling, teach, handoff, wait-what, to-questionnaire (Matt Pocock, MIT, 출처는 `SOURCE.md`) |
 
-외부 스킬 팩은 이 저장소에 복사하지 않고, 원본 마켓플레이스에서 설치해 업데이트를 받습니다.
+thinking-tools의 grilling을 뺀 5개는 `/thinking-tools:grill-me`처럼 슬래시 명령으로만 실행됩니다.
+
+외부 스킬 팩은 원칙적으로 이 저장소에 복사하지 않고, 원본 마켓플레이스에서 설치해 업데이트를 받습니다. 원본 팩에서 일부만 필요할 때만 예외로 골라 복사하고, 그 출처를 `SOURCE.md`에 남깁니다.
 
 - `agent-skills@addy-agent-skills`: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills)
 
@@ -34,6 +38,8 @@ plugins/<plugin>/
   "dev-workflow@my-skills": true,
   "system-tools@my-skills": true,
   "ui-design@my-skills": true,
+  "skill-ops@my-skills": true,
+  "thinking-tools@my-skills": true,
   "agent-skills@addy-agent-skills": true
 }
 ```

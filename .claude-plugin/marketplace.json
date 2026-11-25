@@ -23,6 +23,18 @@
       "description": "UI 디자인 개선 스킬 (unslop, CC BY 4.0 · Damir Sokolovsky)",
       "source": "./plugins/ui-design",
       "category": "design"
+    },
+    {
+      "name": "skill-ops",
+      "description": "스킬 정리·관리 (organize-skills)",
+      "source": "./plugins/skill-ops",
+      "category": "productivity"
+    },
+    {
+      "name": "thinking-tools",
+      "description": "생각 정리·학습·인수인계 스킬 (grill-me, teach, handoff, wait-what, to-questionnaire · Matt Pocock, MIT)",
+      "source": "./plugins/thinking-tools",
+      "category": "productivity"
     }
   ]
 }

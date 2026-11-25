@@ -1,0 +1,9 @@
+{
+  "name": "skill-ops",
+  "version": "1.0.0",
+  "description": "스킬 정리·관리 (organize-skills)",
+  "author": {
+    "name": "ImGdevel"
+  },
+  "skills": "./skills"
+}
