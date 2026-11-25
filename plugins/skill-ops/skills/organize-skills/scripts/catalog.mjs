@@ -201,6 +201,108 @@ const data = {
   disabledMarketplaces: Object.keys(known).filter(m => !plugins.some(p => p.marketplace === m)),
 };
 
+// ---------- who made it ----------
+// Most specific wins: data/skill-origins.json exact id → '<plugin>:*' → SKILL.md author → plugin.json author.
+{
+  const origins = readJson(path.join(HERE, '..', 'data', 'skill-origins.json'), {});
+  for (const p of plugins) for (const s of p.skills) {
+    const o = origins[s.id] || origins[`${p.name}:*`];
+    s.origin = o ? { author: o.author, url: o.url || '' } : { author: s.author || p.author || '알 수 없음', url: p.homepage || p.source.url || '' };
+  }
+  for (const s of loose) {
+    const o = origins[s.kind === 'synced' ? `synced:${s.name}` : `link:${s.name}`] || origins[`${s.kind === 'synced' ? 'synced' : 'link'}:*`];
+    s.origin = s.kind === 'synced' && s.note !== 'Anthropic 제공' ? { author: '내 claude.ai 스킬', url: '' } : o ? { author: o.author, url: o.url || '' } : { author: s.author || '직접 만듦', url: '' };
+  }
+}
+
+// ---------- how often each skill was used ----------
+// Counts Skill tool calls and /slash commands in Claude Code session logs (~/.claude/projects/**/*.jsonl).
+// Logs older than cleanupPeriodDays (default 30) are deleted by Claude Code, so this only covers that window.
+// Per-file counts are cached by mtime+size, so only new or changed logs are read again.
+function collectUsage() {
+  const root = path.join(CLAUDE, 'projects');
+  const cacheFile = path.join(CLAUDE, 'skill-catalog-usage.json');
+  const cache = readJson(cacheFile, { files: {} });
+  const next = { files: {} };
+  const reSkill = /"name":"Skill","input":\{"skill":"([^"]+)"/g;
+  const reCmd = /<command-name>\/([^<\s]+)<\/command-name>/g;
+  let oldest = Infinity;
+  for (const dir of lsDirs(root)) for (const f of lsFiles(path.join(root, dir), '.jsonl')) {
+    const fp = path.join(root, dir, f);
+    let st; try { st = fs.statSync(fp); } catch { continue; }
+    const key = `${st.mtimeMs}:${st.size}`;
+    let entry = cache.files[fp];
+    if (!entry || entry.key !== key) {
+      const counts = {};
+      let first = null;
+      try {
+        const text = fs.readFileSync(fp, 'utf8');
+        const ts = text.match(/"timestamp":"([^"]+)"/); first = ts ? Date.parse(ts[1]) : st.mtimeMs;
+        for (const m of text.matchAll(reSkill)) counts[m[1]] = (counts[m[1]] || 0) + 1;
+        for (const m of text.matchAll(reCmd)) counts['/' + m[1]] = (counts['/' + m[1]] || 0) + 1;
+      } catch {}
+      entry = { key, counts, first, last: st.mtimeMs };
+    }
+    next.files[fp] = entry;
+    oldest = Math.min(oldest, entry.last); // last activity of the oldest kept log ≈ start of the retention window
+  }
+  try { fs.writeFileSync(cacheFile, JSON.stringify(next)); } catch {}
+
+  // Map raw names to catalog ids. A bare name (from before a skill moved into a plugin) counts for
+  // the one skill with that name; slash commands count only when they name a skill.
+  const all = everySkill();
+  const byId = new Map(all.map(s => [s.id, s]));
+  const byName = new Map();
+  for (const s of all) byName.set(s.name, byName.has(s.name) ? null : s);
+  for (const s of all) { s.uses = 0; s.lastUsed = null; }
+  for (const e of Object.values(next.files)) for (const [raw, n] of Object.entries(e.counts)) {
+    const name = raw.replace(/^\//, '');
+    const s = byId.get(name) || byName.get(name) || byName.get(name.split(':').pop());
+    if (!s) continue;
+    s.uses += n;
+    s.lastUsed = Math.max(s.lastUsed || 0, e.last);
+  }
+  data.usageSince = Number.isFinite(oldest) ? new Date(oldest).toISOString() : null;
+  data.usageSessions = Object.keys(next.files).length;
+}
+
+// ---------- automatic checks ----------
+function hookCommands(root, manifest) {
+  let h = manifest.hooks;
+  if (typeof h === 'string') h = readJson(path.resolve(root, h), {})?.hooks;
+  if (!h) h = readJson(path.join(root, 'hooks', 'hooks.json'), {})?.hooks;
+  const out = [];
+  const walk = (v) => { if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === 'object') { if (typeof v.command === 'string') out.push(v.command); Object.values(v).forEach(walk); } };
+  walk(h);
+  return out;
+}
+
+function runChecks() {
+  const issues = [];
+  // 1. The same hook script registered both by a plugin and by hand in settings.json runs twice.
+  const settingsCmds = [];
+  for (const arr of Object.values(settings.hooks || {})) for (const g of arr) for (const x of g.hooks || []) if (x.command) settingsCmds.push(x.command);
+  const scriptName = (c) => (c.match(/([\w.-]+\.(?:js|mjs|cjs|py|ps1|sh|cmd))/g) || []);
+  for (const p of plugins.filter(p => p.enabled)) {
+    const manifest = readJson(path.join(p.root, '.claude-plugin', 'plugin.json')) || {};
+    const pnames = new Set(hookCommands(p.root, manifest).flatMap(scriptName));
+    const dup = settingsCmds.filter(c => scriptName(c).some(n => pnames.has(n)));
+    if (dup.length) issues.push({ level: 'warn', title: `${p.name} 훅이 두 번 실행됨`, detail: `플러그인이 등록한 훅과 같은 스크립트가 ~/.claude/settings.json의 hooks에도 직접 등록돼 있습니다. 매 세션·매 메시지마다 같은 지시가 두 번 들어갑니다: ${dup.map(c => scriptName(c).join(' ')).join(', ')}` });
+  }
+  // 2. Same skill name in more than one place: the short name becomes ambiguous.
+  const seen = {};
+  for (const s of everySkill()) (seen[s.name] ||= []).push(s.id);
+  for (const [n, ids] of Object.entries(seen)) if (ids.length > 1) issues.push({ level: 'info', title: `같은 이름의 스킬: ${n}`, detail: ids.join(', ') });
+  // 3. Skills that need an MCP server which is not configured.
+  const cfg = readJson(path.join(HOME, '.claude.json'), {});
+  const mcpNames = new Set([...Object.keys(cfg.mcpServers || {}), ...Object.values(cfg.projects || {}).flatMap(v => Object.keys(v.mcpServers || {})), ...plugins.flatMap(p => p.mcp)]);
+  for (const s of plugins.filter(p => p.enabled).flatMap(p => p.skills)) {
+    const need = /chrome devtools mcp|chrome-devtools mcp/i.test(s.description) ? 'chrome-devtools' : null;
+    if (need && ![...mcpNames].some(n => n.includes(need))) issues.push({ level: 'warn', title: `${s.id}: 필요한 MCP 없음`, detail: `이 스킬은 ${need} MCP 서버가 있어야 제대로 동작하는데 설정에 없습니다.` });
+  }
+  data.issues = issues;
+}
+
 // ---------- Korean summaries ----------
 // data/ko-summaries.json: { "<id>": { "ko": "한글 요약", "src": "<hash of the description it was written from>" } }
 // A summary whose src no longer matches the description is shown but marked stale, and refilled by --fill-ko.
@@ -278,6 +380,8 @@ async function fillKo() {
 // ---------- render ----------
 function render() {
   attachKo();
+  collectUsage();
+  runChecks();
   const tpl = fs.readFileSync(path.join(HERE, 'catalog-template.html'), 'utf8');
   const json = JSON.stringify(data).replace(/</g, '\\u003c');
   fs.writeFileSync(OUT, tpl.replace('/*__CATALOG_DATA__*/null', json));

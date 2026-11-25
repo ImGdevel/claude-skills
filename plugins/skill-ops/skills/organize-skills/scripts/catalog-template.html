@@ -80,6 +80,15 @@
   .desc-cell.open .orig { display: block; }
   .desc-cell .more { color: var(--ink-3); font-size: 12px; margin-top: 3px; }
   .desc-cell.open .more { display: none; }
+  .issues { display: grid; gap: 8px; }
+  .issue { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--warn); border-radius: 10px; padding: 12px 16px; }
+  .issue.info { border-left-color: var(--line); }
+  .issue b { font-size: 14px; display: block; }
+  .issue span { color: var(--ink-2); font-size: 13.5px; }
+  .who { color: var(--ink-2); font-size: 12px; margin-top: 6px; }
+  .who a { color: inherit; }
+  .uses { font-variant-numeric: tabular-nums; }
+  .uses.zero { color: var(--ink-3); }
   .tag { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 4px; background: var(--warn-bg); color: var(--warn); margin-left: 6px; vertical-align: 1px; }
   .lic { color: var(--ink-3); font-size: 12px; margin-top: 4px; }
   .bar { height: 4px; background: var(--line-2); border-radius: 2px; margin-top: 6px; width: 72px; margin-left: auto; }
@@ -114,6 +123,7 @@
 
   <div class="stats" id="stats"></div>
   <p class="note" id="konote" hidden></p>
+  <p class="note" id="usenote"></p>
   <p class="note">"목록에 항상 차지"는 켜진 플러그인에서 Claude가 스스로 고를 수 있는 스킬의 이름과 설명 분량입니다. 본문은 스킬을 실제로 쓸 때만 읽힙니다. 토큰 수는 글자 수로 어림한 값입니다.</p>
 
   <div class="controls">
@@ -124,8 +134,12 @@
       <button data-mode="slash" aria-pressed="false">슬래시 전용</button>
     </div>
     <label><input type="checkbox" id="onlyOn"> 켜진 플러그인만</label>
+    <label><input type="checkbox" id="onlyUnused"> 안 쓴 스킬만</label>
     <span class="count" id="count"></span>
   </div>
+
+  <h2>점검 결과</h2>
+  <div class="issues" id="issues"></div>
 
   <h2>역할이 겹치는 스킬</h2>
   <div class="overlap" id="overlap"></div>
@@ -162,11 +176,15 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const fmt = n => n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n);
 const date = s => s ? new Date(s).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
 
-const state = { q: '', mode: 'all', onlyOn: false, hit: null };
+const state = { q: '', mode: 'all', onlyOn: false, onlyUnused: false, hit: null };
 const allSkills = D.plugins.flatMap(p => p.skills.map(s => ({ ...s, plugin: p })));
 const maxBody = Math.max(1, ...allSkills.map(s => s.bodyTokens || 0));
 
 function renderHeader() {
+  const unusedOn = allSkills.filter(s => s.plugin.enabled && !s.uses).length;
+  document.getElementById('usenote').textContent = D.usageSince
+    ? `"사용" 횟수는 ${new Date(D.usageSince).toLocaleDateString('ko-KR')}부터 남아 있는 세션 기록 ${D.usageSessions}개에서 센 값입니다. 켜진 플러그인 스킬 중 이 기간에 한 번도 안 쓴 스킬은 ${unusedOn}개입니다. Claude Code는 30일이 지난 기록을 지우고, 다른 도구(Codex 등)에서 쓴 것은 세지 않습니다.`
+    : '세션 기록이 없어 사용 횟수를 세지 못했습니다.';
   document.getElementById('meta').textContent = `${D.host} · ${new Date(D.generatedAt).toLocaleString('ko-KR')} 기준`;
   const on = D.plugins.filter(p => p.enabled);
   const autoOn = allSkills.filter(s => s.plugin.enabled && !s.slashOnly);
@@ -194,10 +212,11 @@ function renderOverlap() {
 
 function matches(s, p) {
   if (state.onlyOn && !p.enabled) return false;
+  if (state.onlyUnused && s.uses) return false;
   if (state.mode === 'auto' && s.slashOnly) return false;
   if (state.mode === 'slash' && !s.slashOnly) return false;
   if (!state.q) return true;
-  const hay = `${s.id} ${s.ko || ''} ${s.description} ${p.key} ${p.description}`.toLowerCase();
+  const hay = `${s.id} ${s.ko || ''} ${s.description} ${p.key} ${p.description} ${s.origin?.author || ''}`.toLowerCase();
   return state.q.split(/\s+/).every(t => hay.includes(t));
 }
 
@@ -233,10 +252,11 @@ function renderPlugins() {
     }
     shown += rows.length;
     const body = rows.length ? `<table>
-      <thead><tr><th>스킬</th><th>설명</th><th class="num hide-sm" title="이름+설명: 목록에 항상 들어가는 분량">목록</th><th class="num hide-sm" title="본문: 스킬을 쓸 때만 읽힘">본문</th></tr></thead>
+      <thead><tr><th>스킬</th><th>설명</th><th class="num" title="세션 기록에서 센 호출 횟수 (스킬 도구 호출 + 슬래시 명령)">사용</th><th class="num hide-sm" title="이름+설명: 목록에 항상 들어가는 분량">목록</th><th class="num hide-sm" title="본문: 스킬을 쓸 때만 읽힘">본문</th></tr></thead>
       <tbody>${rows.map(s => `<tr id="${esc(s.id)}" class="${state.hit === s.id ? 'hit' : ''}">
         <td><div class="sk">${esc(s.name)}</div><span class="mode ${s.slashOnly ? 'slash' : 'auto'}">${s.slashOnly ? '슬래시 전용' : '자동 선택'}</span>${s.slashOnly ? `<div class="cmd">/${esc(s.id)}</div>` : ''}</td>
-        <td>${descCell(s)}${s.license || s.author ? `<div class="lic">${esc([s.license, s.author].filter(Boolean).join(' · '))}</div>` : ''}</td>
+        <td>${descCell(s)}${who(s)}</td>
+        ${usesCell(s)}
         <td class="num hide-sm">${s.slashOnly ? '<span title="슬래시 전용은 목록에 안 들어갑니다">–</span>' : fmt(s.listTokens || 0)}</td>
         <td class="num hide-sm">${fmt(s.bodyTokens || 0)}<div class="bar"><i style="width:${Math.max(3, Math.round((s.bodyTokens || 0) / maxBody * 100))}%"></i></div></td>
       </tr>`).join('')}</tbody></table>`
@@ -260,10 +280,10 @@ function renderLoose() {
   ];
   const q = state.q;
   document.getElementById('loose').innerHTML = groups.map(([kind, title, note]) => {
-    const items = D.loose.filter(s => s.kind === kind && (!q || `${s.name} ${s.ko || ''} ${s.description}`.toLowerCase().includes(q)));
+    const items = D.loose.filter(s => s.kind === kind && (!q || `${s.name} ${s.ko || ''} ${s.description} ${s.origin?.author || ''}`.toLowerCase().includes(q)) && !(state.onlyUnused && s.uses));
     if (!items.length) return '';
     return `<section class="plugin"><div class="ph"><div class="ph-top"><h3>${esc(title)}</h3><span class="mk">${items.length}개</span></div><div class="desc">${esc(note)}</div></div>
-      <table><tbody>${items.map(s => `<tr><td><div class="sk">${esc(s.name)}</div>${s.note ? `<div class="lic">${esc(s.note)}</div>` : ''}</td><td>${descCell(s)}</td><td class="num hide-sm">${fmt(s.listTokens || 0)}</td></tr>`).join('')}</tbody></table></section>`;
+      <table><tbody>${items.map(s => `<tr><td><div class="sk">${esc(s.name)}</div>${s.note ? `<div class="lic">${esc(s.note)}</div>` : ''}</td><td>${descCell(s)}${who(s)}</td>${usesCell(s)}<td class="num hide-sm">${fmt(s.listTokens || 0)}</td></tr>`).join('')}</tbody></table></section>`;
   }).join('') || '<div class="plugin"><div class="empty">없습니다.</div></div>';
 }
 
@@ -272,6 +292,23 @@ function descCell(s) {
   const orig = s.description || s.error || '';
   if (!s.ko) return `<div class="desc-cell" title="원문 설명"><div class="d">${esc(orig || '(설명 없음)')}</div>${orig ? '<span class="tag" title="다음에 바로가기로 열 때 자동으로 채워집니다">한글 요약 준비 중</span>' : ''}</div>`;
   return `<div class="desc-cell" title="눌러서 원문 보기"><div class="ko">${esc(s.ko)}${s.koStale ? '<span class="tag" title="스킬 설명이 바뀌었습니다. 다음에 열 때 요약을 새로 만듭니다">원문 바뀜</span>' : ''}</div>${orig ? `<div class="more">원문 보기</div><div class="orig">${esc(orig)}</div>` : ''}</div>`;
+}
+
+function who(s) {
+  const o = s.origin || {};
+  const name = o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.author)}</a>` : esc(o.author || '');
+  const bits = [name && '만든 사람 ' + name, s.license && esc(s.license)].filter(Boolean);
+  return bits.length ? `<div class="who">${bits.join(' · ')}</div>` : '';
+}
+function usesCell(s) {
+  const last = s.lastUsed ? '마지막 ' + new Date(s.lastUsed).toLocaleDateString('ko-KR') : '기록 기간 동안 안 씀';
+  return `<td class="num"><span class="uses ${s.uses ? '' : 'zero'}" title="${esc(last)}">${s.uses || '–'}</span></td>`;
+}
+function renderIssues() {
+  const list = D.issues || [];
+  document.getElementById('issues').innerHTML = list.length
+    ? list.map(i => `<div class="issue ${i.level}"><b>${esc(i.title)}</b><span>${esc(i.detail)}</span></div>`).join('')
+    : '<div class="issue info"><b>자동 점검에서 걸린 것이 없습니다.</b></div>';
 }
 
 function render() { renderPlugins(); renderLoose(); }
@@ -283,6 +320,7 @@ document.querySelectorAll('.seg button').forEach(btn => btn.addEventListener('cl
   render();
 }));
 document.getElementById('onlyOn').addEventListener('change', e => { state.onlyOn = e.target.checked; render(); });
+document.getElementById('onlyUnused').addEventListener('change', e => { state.onlyUnused = e.target.checked; render(); });
 document.addEventListener('click', e => {
   const c = e.target.closest('.desc-cell'); if (c) { c.classList.toggle('open'); c.querySelector('.d')?.classList.toggle('open'); }
   const j = e.target.closest('[data-jump]');
@@ -296,7 +334,7 @@ document.addEventListener('click', e => {
 });
 
 if (D.koMissing > 0) { const n = document.getElementById('konote'); n.hidden = false; n.textContent = `한글 요약이 없거나 오래된 스킬 ${D.koMissing}개는 지금 백그라운드에서 만드는 중입니다. 다음에 열면 보입니다.`; }
-renderHeader(); renderOverlap(); render();
+renderHeader(); renderIssues(); renderOverlap(); render();
 </script>
 </body>
 </html>

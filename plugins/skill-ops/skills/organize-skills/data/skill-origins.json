@@ -1,0 +1,12 @@
+{
+  "_comment": "누가 만든 스킬인지. 키는 스킬 id, '<plugin>:*'(플러그인 전체), 'link:<name>', 'synced:*'. 위에서부터가 아니라 가장 구체적인 키가 이긴다. 없으면 SKILL.md의 author, 그다음 plugin.json의 author를 쓴다.",
+  "dev-workflow:*": { "author": "직접 만듦", "url": "" },
+  "system-tools:*": { "author": "직접 만듦", "url": "" },
+  "skill-ops:*": { "author": "직접 만듦", "url": "" },
+  "thinking-tools:*": { "author": "Matt Pocock", "url": "https://github.com/mattpocock/skills" },
+  "ui-design:unslop": { "author": "Damir Sokolovsky", "url": "https://heydamir.design/unslop" },
+  "ui-design:extract-design": { "author": "dembrandt", "url": "https://github.com/dembrandt/dembrandt-skills" },
+  "ui-design:generate-ui-from-brand": { "author": "dembrandt", "url": "https://github.com/dembrandt/dembrandt-skills" },
+  "link:*": { "author": "Orca 앱", "url": "" },
+  "synced:*": { "author": "Anthropic", "url": "" }
+}
