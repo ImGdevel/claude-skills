@@ -15,7 +15,7 @@ plugins/<plugin>/
 |---|---|
 | dev-workflow | verified-build |
 | system-tools | disk-report |
-| ui-design | unslop (CC BY 4.0, Damir Sokolovsky) |
+| ui-design | unslop (CC BY 4.0, Damir Sokolovsky), extract-design, generate-ui-from-brand (dembrandt, MIT), 출처는 `SOURCE.md` |
 | skill-ops | organize-skills (스킬 정리·추가 절차) |
 | thinking-tools | grill-me, grilling, teach, handoff, wait-what, to-questionnaire (Matt Pocock, MIT, 출처는 `SOURCE.md`) |
 
