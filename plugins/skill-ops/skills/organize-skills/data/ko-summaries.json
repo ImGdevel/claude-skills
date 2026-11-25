@@ -103,34 +103,6 @@
     "ko": "지금 작업에 어떤 스킬을 쓸지 고르는 안내 스킬. 세션을 시작할 때 쓴다.",
     "src": "9734edd65f"
   },
-  "caveman:cavecrew": {
-    "ko": "코드 찾기·작은 수정·diff 리뷰를 caveman 서브에이전트에게 맡길지 정하는 안내.",
-    "src": "9955b0943a"
-  },
-  "caveman:caveman": {
-    "ko": "원시인 말투로 짧게 답해 토큰을 약 75% 줄이는 대화 모드. 강도(lite/full/ultra)를 고를 수 있다.",
-    "src": "a8aef6e791"
-  },
-  "caveman:caveman-commit": {
-    "ko": "군더더기 없는 Conventional Commits 형식의 커밋 메시지를 만든다.",
-    "src": "cf54dd0de6"
-  },
-  "caveman:caveman-compress": {
-    "ko": "CLAUDE.md 같은 메모 파일을 압축 문체로 바꿔 입력 토큰을 줄인다. 원본은 백업해 둔다.",
-    "src": "896b9340a8"
-  },
-  "caveman:caveman-help": {
-    "ko": "caveman 모드·스킬·명령 요약표를 보여 준다.",
-    "src": "fc0fcb630c"
-  },
-  "caveman:caveman-review": {
-    "ko": "위치·문제·해결을 한 줄로 쓰는 짧은 코드 리뷰 코멘트를 만든다.",
-    "src": "63c467ab52"
-  },
-  "caveman:caveman-stats": {
-    "ko": "현재 세션의 실제 토큰 사용량과 절약량을 보여 준다.",
-    "src": "61de6354d8"
-  },
   "dev-workflow:verified-build": {
     "ko": "명세 → 독립 테스트 → 여러 구현 병렬 시도 → 반대 검증을 거쳐 가장 나은 구현을 고른다. 정확도가 중요한 어려운 코딩용.",
     "src": "eac0b44da0"
