@@ -1,0 +1,10 @@
+{
+  "name": "thinking-tools",
+  "version": "1.0.0",
+  "description": "생각 정리·학습·인수인계 스킬 (grill-me, teach, handoff, wait-what, to-questionnaire · Matt Pocock, MIT)",
+  "author": {
+    "name": "ImGdevel"
+  },
+  "license": "MIT",
+  "skills": "./skills"
+}
