@@ -147,32 +147,55 @@ for (const [key, records] of Object.entries(installed)) {
     const entry = (mj.plugins || []).find(p => p.name === pname);
     if (entry && typeof entry.source === 'string') { root = path.resolve(km.installLocation, entry.source); loadsInPlace = true; }
   }
+  plugins.push(describePlugin({ key, market, root, loadsInPlace, version: rec.version, lastUpdated: rec.lastUpdated || rec.installedAt,
+    enabled: enabled[key] === true, source: sourceLabel(km.source), autoUpdate: extra[market]?.autoUpdate === true }));
+}
+
+// Plugins the desktop app syncs from the claude.ai account (~/.claude/plugins/synced/<bucket>/<dir>).
+// They are not in installed_plugins.json; the CLI lists them as <name>@synced.
+for (const bucket of lsDirs(path.join(CLAUDE, 'plugins', 'synced'))) {
+  const bdir = path.join(CLAUDE, 'plugins', 'synced', bucket);
+  const man = readJson(path.join(bdir, 'manifest.json'), { plugins: [] });
+  for (const dir of lsDirs(bdir)) {
+    const root = path.join(bdir, dir);
+    const pj = readJson(path.join(root, '.claude-plugin', 'plugin.json'));
+    if (!pj) continue;
+    const m = (man.plugins || []).find(p => p.name === dir) || {};
+    const key = `${pj.name || dir}@synced`;
+    plugins.push(describePlugin({ key, market: 'synced', root, loadsInPlace: false, version: pj.version, lastUpdated: m.updatedAt,
+      enabled: enabled[key] !== false,
+      source: { kind: 'synced', label: `claude.ai 계정 동기화${m.marketplaceName ? ' · ' + m.marketplaceName : ''}` }, autoUpdate: true }));
+  }
+}
+
+function describePlugin({ key, market, root, loadsInPlace, version, lastUpdated, enabled: on, source, autoUpdate }) {
+  const pname = key.split('@')[0];
   const manifest = readJson(path.join(root, '.claude-plugin', 'plugin.json')) || readJson(path.join(root, 'plugin.json')) || {};
   const skills = [];
   for (const d of skillDirs(root, manifest.skills)) {
     try { skills.push(readSkill(d, pname)); } catch (e) { skills.push({ name: path.basename(d), id: `${pname}:${path.basename(d)}`, error: String(e.message) }); }
   }
   skills.sort((a, b) => a.name.localeCompare(b.name));
-  plugins.push({
+  return {
     key, name: pname, marketplace: market,
-    enabled: enabled[key] === true,
-    version: manifest.version || rec.version,
+    enabled: on,
+    version: manifest.version || version,
     description: manifest.description || '',
     author: manifest.author?.name || '',
     license: manifest.license || '',
     homepage: manifest.homepage || manifest.repository || '',
-    source: sourceLabel(km.source),
-    autoUpdate: extra[market]?.autoUpdate === true,
+    source,
+    autoUpdate,
     loadsInPlace,
     root,
-    lastUpdated: rec.lastUpdated || rec.installedAt,
+    lastUpdated,
     hasSourceNote: exists(path.join(root, 'SOURCE.md')),
     skills,
     agents: countMd(root, manifest.agents, './agents'),
     commands: countMd(root, manifest.commands, './commands'),
     hooks: hookEvents(root, manifest),
     mcp: mcpServers(root, manifest),
-  });
+  };
 }
 plugins.sort((a, b) => (a.marketplace === b.marketplace ? a.name.localeCompare(b.name) : a.marketplace.localeCompare(b.marketplace)));
 

@@ -225,6 +225,7 @@ function pluginBadges(p) {
   b.push(p.enabled ? '<span class="b on">켜짐</span>' : '<span class="b off">꺼짐</span>');
   if (p.version) b.push(`<span class="b">v${esc(p.version)}</span>`);
   if (p.loadsInPlace) b.push('<span class="b" title="복사본이 아니라 원본 폴더에서 바로 읽습니다. 고친 뒤 /reload-plugins">폴더에서 바로 로드</span>');
+  else if (p.source.kind === 'synced') b.push('<span class="b" title="claude.ai 계정에 설치한 플러그인을 데스크톱 앱이 이 PC로 내려받습니다. 끄기는 /plugin 또는 claude.ai 설정에서">claude.ai 동기화</span>');
   else if (p.source.kind === 'github') b.push(p.autoUpdate ? '<span class="b">자동 업데이트</span>' : '<span class="b warn" title="settings.json의 extraKnownMarketplaces에 autoUpdate가 없습니다">수동 업데이트</span>');
   if (p.hooks.length) b.push(`<span class="b warn" title="플러그인이 이 시점에 명령을 실행합니다">훅: ${esc(p.hooks.join(', '))}</span>`);
   if (p.mcp.length) b.push(`<span class="b">MCP: ${esc(p.mcp.join(', '))}</span>`);

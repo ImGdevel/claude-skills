@@ -26,7 +26,7 @@ bash "${CLAUDE_SKILL_DIR}/scripts/inventory.sh"
 | `synced` | claude.ai 계정 스킬. 앱이 동기화 | 그대로 둔다 |
 | `dir` | 실제 폴더 | 출처를 확인해 아래 2번으로 분류 |
 
-`settings.json`의 `extraKnownMarketplaces`/`enabledPlugins`, `plugins/installed_plugins.json`도 읽어 이미 설치된 것과 겹치지 않게 한다.
+`settings.json`의 `extraKnownMarketplaces`/`enabledPlugins`, `plugins/installed_plugins.json`도 읽어 이미 설치된 것과 겹치지 않게 한다. claude.ai 계정에 설치한 플러그인은 데스크톱 앱이 `~/.claude/plugins/synced/<bucket>/`로 내려받는다. 이 플러그인은 installed_plugins.json에 없고 CLI에서 `<name>@synced`로 보이며, 이 저장소에서 관리하지 않는다.
 
 ## 2. 출처 찾기
 
