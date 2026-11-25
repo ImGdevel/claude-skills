@@ -122,8 +122,11 @@ claude plugin list
 설치된 플러그인과 스킬을 한 페이지로 보려면 아래 명령을 실행한다. 정리나 추가를 끝낸 뒤에도 실행해 결과를 보여 준다.
 
 ```bash
-node "${CLAUDE_SKILL_DIR}/scripts/catalog.mjs" --open     # ~/.claude/skill-catalog.html
+node "${CLAUDE_SKILL_DIR}/scripts/catalog.mjs" --app      # 새로 만들고 Edge/Chrome 앱 창으로 열기 (~/.claude/skill-catalog.html)
+node "${CLAUDE_SKILL_DIR}/scripts/catalog.mjs" --install-shortcut   # 바탕화면 "스킬 목록" 바로가기 (Windows)
 ```
+
+바로가기는 열 때마다 페이지를 새로 만들어서 항상 현재 상태를 보여 준다. 그래서 따로 훅을 둘 필요가 없다. 사용자가 다른 PC에서 쓰려고 하면 `--install-shortcut`을 다시 실행해 준다. 바로가기는 이 스크립트의 절대 경로를 가리키므로, 저장소 위치를 옮긴 뒤에도 다시 실행해야 한다.
 
 페이지에서 확인할 수 있는 것:
 - 플러그인별 켜짐 여부, 출처, 자동 업데이트, 훅·MCP·에이전트·명령

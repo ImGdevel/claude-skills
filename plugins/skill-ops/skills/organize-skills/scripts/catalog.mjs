@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // Build a one-page catalog of every Claude Code plugin and skill on this machine.
 // Reads ~/.claude settings and plugin records; writes a self-contained HTML file.
-// Usage: node catalog.mjs [--out <file.html>] [--json <file.json>] [--open]
+// Usage: node catalog.mjs [--out <file.html>] [--json <file.json>] [--open | --app] [--install-shortcut [name]]
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 
 const HOME = os.homedir();
 const CLAUDE = path.join(HOME, '.claude');
@@ -208,7 +208,56 @@ if (JSON_OUT) fs.writeFileSync(JSON_OUT, JSON.stringify(data, null, 2));
 const nSkills = plugins.reduce((n, p) => n + p.skills.length, 0);
 console.log(`plugins ${plugins.length} (enabled ${plugins.filter(p => p.enabled).length}), plugin skills ${nSkills}, other skills ${loose.length}`);
 console.log(`wrote ${OUT}`);
-if (args.includes('--open')) {
-  const cmd = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', OUT]] : process.platform === 'darwin' ? ['open', [OUT]] : ['xdg-open', [OUT]];
+// --app: open in a chromeless Edge/Chrome window so it feels like a small desktop app.
+function appBrowser() {
+  const pf86 = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)';
+  const pf = process.env.ProgramFiles || 'C:\\Program Files';
+  const local = process.env.LOCALAPPDATA || '';
+  const candidates = process.platform === 'win32'
+    ? [path.join(pf86, 'Microsoft\\Edge\\Application\\msedge.exe'), path.join(pf, 'Microsoft\\Edge\\Application\\msedge.exe'),
+       path.join(pf, 'Google\\Chrome\\Application\\chrome.exe'), path.join(local, 'Google\\Chrome\\Application\\chrome.exe')]
+    : process.platform === 'darwin'
+      ? ['/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome']
+      : ['/usr/bin/microsoft-edge', '/usr/bin/google-chrome', '/usr/bin/chromium'];
+  return candidates.find(exists);
+}
+
+function openDefault(file) {
+  const cmd = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', file]] : process.platform === 'darwin' ? ['open', [file]] : ['xdg-open', [file]];
   execFile(cmd[0], cmd[1], () => {});
+}
+
+if (args.includes('--app')) {
+  const browser = appBrowser();
+  const url = 'file:///' + OUT.replace(/\\/g, '/').replace(/^\/+/, '');
+  if (browser) {
+    const child = spawn(browser, [`--app=${url}`, '--window-size=1200,900'], { detached: true, stdio: 'ignore' });
+    child.unref();
+  } else openDefault(OUT);
+} else if (args.includes('--open')) {
+  openDefault(OUT);
+}
+
+// --install-shortcut [name]: put a desktop shortcut that regenerates the catalog and opens it as an app window.
+if (args.includes('--install-shortcut')) {
+  if (process.platform !== 'win32') { console.log('shortcut install is Windows-only; run `node catalog.mjs --app` instead'); process.exit(0); }
+  const nameArg = argVal('--install-shortcut');
+  const name = nameArg && !nameArg.startsWith('--') ? nameArg : '스킬 목록';
+  const script = fileURLToPath(import.meta.url);
+  const ps = `
+$ws = New-Object -ComObject WScript.Shell
+$desk = [Environment]::GetFolderPath('Desktop')
+$lnk = $ws.CreateShortcut((Join-Path $desk '${name.replace(/'/g, "''")}.lnk'))
+$lnk.TargetPath = '${process.execPath.replace(/'/g, "''")}'
+$lnk.Arguments = '"${script.replace(/'/g, "''")}" --app'
+$lnk.WorkingDirectory = '${HERE.replace(/'/g, "''")}'
+$lnk.WindowStyle = 7
+$lnk.IconLocation = "$env:SystemRoot\\System32\\imageres.dll,186"
+$lnk.Description = 'Claude 스킬·플러그인 목록 (열 때마다 새로 만듦)'
+$lnk.Save()
+Write-Output $lnk.FullName`;
+  execFile('powershell', ['-NoProfile', '-Command', ps], (err, stdout, stderr) => {
+    if (err) { console.error('shortcut failed:', stderr || err.message); process.exitCode = 1; }
+    else console.log('shortcut:', stdout.trim());
+  });
 }
