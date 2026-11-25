@@ -51,6 +51,7 @@ thinking-tools의 grilling을 뺀 5개는 `/thinking-tools:grill-me`처럼 슬�
 
 - **새 스킬 추가**: `plugins/<알맞은 플러그인>/skills/<이름>/SKILL.md`를 만들고 `/reload-plugins`를 실행합니다.
 - **새 묶음 추가**: `plugins/<새 플러그인>/`을 만들고, `marketplace.json`과 `enabledPlugins`에 항목을 추가합니다.
+- **전체 목록 보기**: `node plugins/skill-ops/skills/organize-skills/scripts/catalog.mjs --open` (결과는 `~/.claude/skill-catalog.html`)
 - **묶음 끄기**: `enabledPlugins`에서 해당 값을 `false`로 바꾸거나 `/plugin` 메뉴에서 끕니다.
 - **스킬 안에서 파일 경로 쓰기**: `${CLAUDE_SKILL_DIR}`(스킬 폴더) 또는 `${CLAUDE_PLUGIN_ROOT}`(플러그인 폴더)를 씁니다. 절대 경로는 쓰지 않습니다.
 
