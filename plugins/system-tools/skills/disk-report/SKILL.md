@@ -1,6 +1,7 @@
 ---
 name: disk-report
 description: Scan a Windows drive (default C:) and publish a full disk-usage report artifact - every byte split into non-overlapping categories, a drill-down folder explorer, installed apps with last-use dates, leftover AppData folders, and change since the last scan. Use when the user asks why their disk is full, what is using space, for a disk/storage report, to re-run or refresh the disk report, or invokes /disk-report. Read-only; never deletes anything.
+model: haiku
 ---
 
 # Disk report

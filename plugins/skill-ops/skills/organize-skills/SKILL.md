@@ -1,6 +1,7 @@
 ---
 name: organize-skills
 description: ~/.claude/skills에 흩어진 스킬을 정리해 개인 플러그인 마켓플레이스(Git 저장소)로 옮긴다. 외부 스킬 팩은 원본 마켓플레이스에서 설치하고, 직접 만든 스킬만 주제별 플러그인으로 묶는다. 사용자가 "스킬 관리가 어렵다", "스킬 정리해줘", "스킬을 git으로 관리하고 싶다", "스킬을 묶어서 켜고 끄고 싶다", "새 스킬을 내 마켓플레이스에 추가해줘", "다른 PC에서도 같은 스킬 쓰고 싶다"고 하거나, ~/.claude/skills에 출처 모를 폴더가 쌓였을 때 사용한다. 외부 스킬을 마켓플레이스에 추가하는 요청에도 사용한다.
+model: haiku
 ---
 
 # organize-skills
@@ -70,6 +71,7 @@ bash "${CLAUDE_SKILL_DIR}/scripts/check-upstream.sh" <원본 git URL> <로컬 �
 ```
 
 - 플러그인 이름은 기능을 드러내게 짓는다. `claude-`, `anthropic-`, `cc-plugin-`으로 시작하는 이름과 `claude`, `claude-code` 같은 이름은 예약어라 `plugin validate`에서 거부된다.
+- 단순 반복 작업용 스킬이라 싼 모델로 충분하면 frontmatter에 `model: haiku`를 넣는다. 그 턴만 haiku로 실행되고, 사용자가 다음 메시지를 보내면 세션 모델로 돌아간다.
 - 원본 폴더를 **복사**한다. 옮기는 것은 5번에서 한다.
 - 스킬 본문의 절대 경로(`~/.claude/skills/<x>/...`)는 `${CLAUDE_SKILL_DIR}`로 바꾼다. 플러그인 폴더 전체를 가리킬 때는 `${CLAUDE_PLUGIN_ROOT}`를 쓴다. 이 두 변수는 SKILL.md 본문과 `allowed-tools`에서 치환된다.
 - 스킬 **밖**에서 옛 경로를 쓰는 곳도 찾아 고친다. 바탕화면 바로가기, 작업 스케줄러, 다른 스크립트가 해당된다. 바로가기는 PowerShell `WScript.Shell`의 `CreateShortcut`으로 `Arguments`를 읽고 고친다.
