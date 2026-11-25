@@ -1,0 +1,9 @@
+{
+  "name": "dev-workflow",
+  "version": "1.0.0",
+  "description": "개발 작업 파이프라인 스킬 (verified-build)",
+  "author": {
+    "name": "ImGdevel"
+  },
+  "skills": "./skills"
+}

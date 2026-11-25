@@ -1,0 +1,335 @@
+<title>C: 드라이브 사용 내역</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column ledger — capacity strip, category ledger, folder explorer, app table, leftovers, method notes */
+:root {
+  --bg: #f5f6f8; --surface: #ffffff; --fg: #1b2230; --muted: #5d6878; --line: #dfe3ea; --accent: #2f5bd3;
+  --free: #e7eaf0; --ok: #2c7a4b; --warn: #a86512; --bad: #b3372f; --none: #7a8494;
+  --c1: #3b6fd8; --c2: #c05a2b; --c3: #2e8f86; --c4: #8a5cc2; --c5: #c39a1d; --c6: #4f8f3a; --c7: #c2477a; --c8: #6b7a8f;
+  --c9: #2a9bc0; --c10: #9b6a3c; --c11: #5a5fbf; --c12: #a3a9b4; --c13: #d0d4db;
+  --display: "IBM Plex Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --body: "IBM Plex Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12161d; --surface: #1a2029; --fg: #e5e9f0; --muted: #98a2b3; --line: #2b3340; --accent: #7fa2ff;
+  --free: #232a35; --ok: #5cc184; --warn: #e0a24a; --bad: #f07a70; --none: #8e98a8;
+  --c1: #6d97f0; --c2: #e07c4c; --c3: #4fb9ae; --c4: #a985e0; --c5: #dcb43e; --c6: #74b65c; --c7: #e06c9c; --c8: #8d9bb0;
+  --c9: #52bce0; --c10: #c08a58; --c11: #8186e6; --c12: #6f7787; --c13: #4a5260; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --fg: #e5e9f0; --muted: #98a2b3; --line: #2b3340; --accent: #7fa2ff;
+  --free: #232a35; --ok: #5cc184; --warn: #e0a24a; --bad: #f07a70; --none: #8e98a8;
+  --c1: #6d97f0; --c2: #e07c4c; --c3: #4fb9ae; --c4: #a985e0; --c5: #dcb43e; --c6: #74b65c; --c7: #e06c9c; --c8: #8d9bb0;
+  --c9: #52bce0; --c10: #c08a58; --c11: #8186e6; --c12: #6f7787; --c13: #4a5260; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.55 }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 32px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px }
+h1, h2 { font-family: var(--display); text-wrap: balance; margin: 0 }
+h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.01em }
+h2 { font-size: 1.25rem; font-weight: 700 }
+.eyebrow { font-family: var(--mono); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+.lede { color: var(--muted); max-width: 68ch; margin: 6px 0 0 }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums }
+section { display: grid; gap: 14px; min-width: 0 }
+.head { display: grid; gap: 4px }
+
+/* capacity strip */
+.cap { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 14px }
+.figs { display: flex; flex-wrap: wrap; gap: 28px }
+.fig b { display: block; font-family: var(--mono); font-size: 1.7rem; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.2 }
+.fig span { color: var(--muted); font-size: .85rem }
+.strip { display: flex; height: 34px; border-radius: 6px; overflow: hidden; background: var(--free) }
+.strip i { display: block; height: 100%; border-right: 1px solid var(--surface); cursor: pointer }
+.strip i:hover, .strip i:focus-visible { filter: brightness(1.12); outline: none }
+.strip .freeseg { background: repeating-linear-gradient(135deg, var(--free) 0 6px, transparent 6px 12px); border: none; cursor: default }
+.scale { display: flex; justify-content: space-between; font-family: var(--mono); font-size: .72rem; color: var(--muted) }
+
+/* ledger */
+.ledger { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden }
+.row { display: grid; grid-template-columns: 14px minmax(0, 1fr) 90px 56px; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid var(--line) }
+.ledger > .row:first-child, .ledger > details:first-child > summary { border-top: none }
+details > summary { list-style: none; cursor: pointer }
+details > summary::-webkit-details-marker { display: none }
+summary.row:hover { background: color-mix(in srgb, var(--accent) 6%, transparent) }
+summary.row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px }
+.sw { width: 14px; height: 14px; border-radius: 3px }
+.name { min-width: 0 }
+.name strong { font-weight: 500 }
+.name small { display: block; color: var(--muted); font-size: .82rem; line-height: 1.45 }
+.gb { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums }
+.pct { text-align: right; font-family: var(--mono); font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums }
+.items { padding: 4px 16px 14px 42px; display: grid; gap: 2px }
+.item { display: grid; grid-template-columns: minmax(0, 1fr) 80px; gap: 12px; font-size: .86rem; padding: 3px 0; border-bottom: 1px dashed var(--line) }
+.item .p { font-family: var(--mono); font-size: .8rem; overflow-wrap: anywhere; color: var(--muted) }
+.item .p em { font-style: normal; color: var(--fg) }
+.item .gb { font-size: .82rem }
+.chev { display: inline-block; width: 1em; color: var(--muted); transition: transform .15s }
+details[open] > summary .chev { transform: rotate(90deg) }
+
+/* tree */
+.tree { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 0; overflow-x: auto }
+.tn { display: grid; grid-template-columns: minmax(0, 1fr) minmax(60px, 160px) 76px; gap: 12px; align-items: center; padding: 4px 16px; font-size: .88rem }
+.tn button { all: unset; cursor: pointer; display: flex; gap: 6px; align-items: baseline; min-width: 0; overflow-wrap: anywhere }
+.tn button:focus-visible { outline: 2px solid var(--accent); border-radius: 3px }
+.tn .leaf { cursor: default; color: var(--muted) }
+.tn:hover { background: color-mix(in srgb, var(--accent) 5%, transparent) }
+.bar { height: 6px; border-radius: 3px; background: var(--free); overflow: hidden }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px }
+.tn .gb { font-size: .82rem }
+
+/* tables */
+.tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.chip { font: inherit; font-size: .84rem; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer }
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg) }
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.tablebox { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: .87rem }
+th, td { text-align: left; padding: 9px 14px; border-top: 1px solid var(--line); vertical-align: top }
+thead th { border-top: none; font-weight: 500; color: var(--muted); font-size: .78rem; letter-spacing: .03em; cursor: pointer; white-space: nowrap; user-select: none }
+thead th:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px }
+td.r, th.r { text-align: right }
+td .sub { display: block; color: var(--muted); font-family: var(--mono); font-size: .74rem; overflow-wrap: anywhere }
+.pill { display: inline-block; font-size: .74rem; padding: 1px 8px; border-radius: 999px; white-space: nowrap; border: 1px solid currentColor }
+.pill.ok { color: var(--ok) } .pill.warn { color: var(--warn) } .pill.bad { color: var(--bad) } .pill.none { color: var(--none) }
+
+/* notes */
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px }
+.note { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 0 }
+.note h3 { margin: 0 0 6px; font-size: 1rem; font-weight: 700 }
+.note p { margin: 0 0 8px; color: var(--muted); font-size: .9rem }
+.note p:last-child { margin-bottom: 0 }
+code { font-family: var(--mono); font-size: .85em; background: var(--free); padding: 1px 5px; border-radius: 4px }
+@media (max-width: 560px) {
+  .row { grid-template-columns: 12px minmax(0, 1fr) 70px; } .row .pct { display: none }
+  .items { padding-left: 16px } .tn { grid-template-columns: minmax(0, 1fr) 70px } .tn .bar { display: none }
+}
+@media (prefers-reduced-motion: reduce) { .chev { transition: none } }
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow"><span id="model"></span><span id="scanned"></span> 측정</div>
+    <h1><span class="drv">C:</span> 드라이브 사용 내역</h1>
+    <p class="lede"><span class="drv">C:</span> 드라이브 전체 파일을 하나도 빼지 않고 크기를 더했습니다. 아래 분류는 서로 겹치지 않고, 모두 더하면 사용 중인 용량과 같습니다.<span id="prevline"></span></p>
+  </header>
+
+  <section class="cap" aria-label="전체 용량">
+    <div class="figs">
+      <div class="fig"><b id="f-used"></b><span>사용 중</span></div>
+      <div class="fig"><b id="f-free"></b><span>남은 공간</span></div>
+      <div class="fig"><b id="f-size"></b><span>전체 용량</span></div>
+      <div class="fig"><b id="f-files"></b><span>파일 수</span></div>
+    </div>
+    <div class="strip" id="strip" role="img" aria-label="분류별 사용량 막대"></div>
+    <div class="scale" id="scale"></div>
+  </section>
+
+  <section>
+    <div class="head">
+      <h2>무엇이 공간을 쓰고 있나</h2>
+      <p class="lede">한 줄씩 누르면 그 분류에 들어간 폴더와 크기가 나옵니다.</p>
+    </div>
+    <div class="ledger" id="ledger"></div>
+  </section>
+
+  <section>
+    <div class="head">
+      <h2>폴더 탐색</h2>
+      <p class="lede">드라이브 맨 위부터 폴더를 열어 내려갈 수 있습니다. 100MB가 넘는 폴더만 보이고, 막대는 드라이브 사용량 전체 대비 비율입니다.</p>
+    </div>
+    <div class="tree" id="tree"></div>
+  </section>
+
+  <section>
+    <div class="head">
+      <h2>설치된 앱과 마지막 사용</h2>
+      <p class="lede">"마지막 사용"은 Windows 실행 기록, Steam 플레이 기록 순으로 찾고, 둘 다 없으면 앱 폴더에서 가장 최근에 바뀐 파일 날짜로 대신합니다. 근거 열에 무엇을 썼는지 적었습니다.</p>
+    </div>
+    <div class="tools" role="group" aria-label="앱 필터">
+      <button class="chip" id="fa-all" aria-pressed="true" data-f="all">전체</button>
+      <button class="chip" id="fa-old" aria-pressed="false" data-f="old">90일 넘게 안 씀</button>
+      <button class="chip" id="fa-none" aria-pressed="false" data-f="none">사용 기록 없음</button>
+      <button class="chip" id="fa-big" aria-pressed="false" data-f="big">1GB 이상</button>
+    </div>
+    <div class="tablebox">
+      <table id="apps">
+        <thead><tr>
+          <th tabindex="0" data-k="name">앱</th>
+          <th tabindex="0" data-k="b" class="r">크기</th>
+          <th tabindex="0" data-k="last">마지막 사용</th>
+          <th>근거</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="head">
+      <h2>앱 데이터 폴더 (AppData · ProgramData)</h2>
+      <p class="lede">200MB가 넘는 앱 데이터 폴더를 설치된 앱 목록과 이름으로 맞춰 봤습니다. "연결된 앱 없음"은 지운 앱이 남긴 찌꺼기일 수 있지만, 이름이 달라서 못 맞춘 경우도 있으니 후보로만 보세요.</p>
+    </div>
+    <div class="tools" role="group" aria-label="데이터 폴더 필터">
+      <button class="chip" id="fd-all" aria-pressed="false" data-f="all">전체</button>
+      <button class="chip" id="fd-orphan" aria-pressed="true" data-f="orphan">연결된 앱 없음</button>
+    </div>
+    <div class="tablebox">
+      <table id="appdata">
+        <thead><tr><th>폴더</th><th class="r">크기</th><th>최근 변경</th><th>설치된 앱</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><h2>자주 묻는 것</h2></div>
+    <div class="notes">
+      <div class="note">
+        <h3>최대 절전 파일 (hiberfil.sys)</h3>
+        <p>최대 절전 모드는 PC를 끌 때 메모리 내용을 디스크에 통째로 저장해 두었다가, 켤 때 그대로 되살리는 기능입니다. 그 저장 공간을 Windows가 미리 잡아 두는데, 지금 <b class="num" id="n-hib"></b>입니다.</p>
+        <p>최대 절전을 안 쓰면 관리자 터미널에서 <code>powercfg /h off</code>로 끄고 공간을 돌려받을 수 있습니다. 대신 Windows "빠른 시작"도 같이 꺼져서 부팅이 몇 초 느려질 수 있습니다. 일반 절전(모니터만 끄고 대기)은 그대로 됩니다.</p>
+      </div>
+      <div class="note">
+        <h3>가상 메모리 파일 (pagefile.sys)</h3>
+        <p>메모리가 모자랄 때 디스크를 임시 메모리로 쓰는 파일입니다. 지금 <b class="num" id="n-page"></b>입니다. Windows가 크기를 알아서 조절하므로 그대로 두는 걸 권합니다.</p>
+      </div>
+      <div class="note">
+        <h3>Claude · Codex 데이터</h3>
+        <p><b>Claude-Data <span class="num" id="n-claude"></span></b>: 지금 쓰고 있는 Claude 데스크톱 앱의 작업 폴더입니다. 세션마다 만드는 임시 작업 폴더와 앱 데이터가 들어 있습니다. 앱이 관리하므로 직접 지우지 말고, 오래된 세션을 앱에서 삭제하는 쪽이 안전합니다.</p>
+        <p><b>.codex <span class="num" id="n-codex"></span></b>: OpenAI Codex의 데이터입니다. 대화 기록(sessions) <span class="num" id="n-codexs"></span>, 생성한 이미지 <span class="num" id="n-codexi"></span>가 대부분입니다. 예전 대화를 다시 볼 일이 없다면 오래된 월 폴더를 지워도 됩니다.</p>
+      </div>
+      <div class="note">
+        <h3>측정 방법과 한계</h3>
+        <p>모든 파일의 크기를 직접 더했습니다. 접근이 막힌 시스템 보호 영역(시스템 복원 지점, 파일 시스템 내부 기록)은 열 수 없어서 "측정 불가"로 따로 적었습니다.</p>
+        <p>Docker·WSL 가상 디스크는 파일 크기 기준이라 실제 차지하는 공간과 조금 다를 수 있습니다. 앱 "마지막 사용"은 Windows가 남긴 실행 기록이 일부 앱에만 있어서, 없는 앱은 폴더 변경일(업데이트 포함)로 대신했습니다.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const D = /*DATA*/null;
+const GB = 1024 ** 3;
+const fmt = b => b >= 100 * GB ? (b / GB).toFixed(0) + ' GB' : b >= GB ? (b / GB).toFixed(1) + ' GB' : (b / 1024 ** 2).toFixed(0) + ' MB';
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const BS = String.fromCharCode(92);
+const today = new Date(D.scanned.slice(0, 10) + 'T00:00:00');
+const days = d => d ? Math.round((today - new Date(d + 'T00:00:00')) / 864e5) : null;
+
+const disk = D.disk;
+document.title = `${D.drive} 드라이브 사용 내역`;
+document.querySelectorAll('.drv').forEach(e => e.textContent = D.drive);
+document.getElementById('model').textContent = D.model ? D.model + ' · ' : '';
+document.getElementById('scanned').textContent = D.scanned;
+const prevCats = D.prev ? D.prev.cats : null;
+const delta = (name, b) => {
+  if (!prevCats || !(name in prevCats)) return '';
+  const d = (b - prevCats[name]) / GB;
+  if (Math.abs(d) < 0.1) return '';
+  return ` · 지난번보다 ${d > 0 ? '+' : ''}${d.toFixed(1)}GB`;
+};
+if (D.prev) {
+  const d = (disk.used - D.prev.used) / GB;
+  document.getElementById('prevline').textContent = ` 지난 측정(${D.prev.scanned})보다 사용량이 ${d >= 0 ? d.toFixed(1) + 'GB 늘었' : (-d).toFixed(1) + 'GB 줄었'}습니다.`;
+}
+document.getElementById('f-used').textContent = (disk.used / GB).toFixed(1) + ' GB';
+document.getElementById('f-free').textContent = (disk.free / GB).toFixed(1) + ' GB';
+document.getElementById('f-size').textContent = (disk.size / GB).toFixed(0) + ' GB';
+document.getElementById('f-files').textContent = disk.files.toLocaleString('ko-KR');
+
+// colors by category order
+D.cats.forEach((c, i) => c.color = `var(--c${Math.min(i + 1, 13)})`);
+const strip = document.getElementById('strip');
+strip.innerHTML = D.cats.map((c, i) => `<i tabindex="0" title="${esc(c.name)} · ${fmt(c.b)}" data-i="${i}" style="width:${c.b / disk.size * 100}%;background:${c.color}"></i>`).join('') +
+  `<i class="freeseg" title="남은 공간 · ${fmt(disk.free)}" style="width:${disk.free / disk.size * 100}%"></i>`;
+const ticks = [0, 200, 400, 600, 800, Math.round(disk.size / GB)];
+document.getElementById('scale').innerHTML = ticks.map(t => `<span>${t}GB</span>`).join('');
+
+const ledger = document.getElementById('ledger');
+ledger.innerHTML = D.cats.map((c, i) => {
+  const items = c.items.map(it => {
+    const parts = it.p.split(BS); const last = parts.pop();
+    return `<div class="item"><span class="p">${esc(parts.join(BS))}${BS}<em>${esc(last)}</em></span><span class="gb">${fmt(it.b)}</span></div>`;
+  }).join('');
+  const sum = `<summary class="row"><span class="sw" style="background:${c.color}"></span><span class="name"><strong><span class="chev">›</span>${esc(c.name)}</strong><small>${esc(c.note || '')}${esc(delta(c.name, c.b))}</small></span><span class="gb">${fmt(c.b)}</span><span class="pct">${(c.b / disk.used * 100).toFixed(1)}%</span></summary>`;
+  return items ? `<details id="cat-${i}">${sum}<div class="items">${items}</div></details>` : `<div class="row">${sum.replace(/<\/?summary[^>]*>/g, '').replace('<span class="chev">›</span>', '')}</div>`;
+}).join('');
+strip.addEventListener('click', e => { const i = e.target.dataset.i; if (i == null) return; const d = document.getElementById('cat-' + i); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'center' }); } });
+strip.addEventListener('keydown', e => { if (e.key === 'Enter') e.target.click(); });
+
+// tree
+const treeEl = document.getElementById('tree');
+function renderNodes(nodes, depth, host) {
+  for (const n of nodes) {
+    const row = document.createElement('div');
+    row.className = 'tn';
+    const pad = `padding-left:${16 + depth * 18}px`;
+    const has = n.c && n.c.length;
+    row.innerHTML = `<button style="${pad}" class="${has ? '' : 'leaf'}" aria-expanded="false"><span class="chev">${has ? '›' : '·'}</span><span>${esc(n.n)}</span></button><span class="bar"><i style="width:${Math.max(n.b / disk.used * 100, .3)}%"></i></span><span class="gb">${fmt(n.b)}</span>`;
+    host.appendChild(row);
+    if (has) {
+      const box = document.createElement('div'); box.hidden = true; host.appendChild(box);
+      const btn = row.querySelector('button'); let built = false;
+      btn.addEventListener('click', () => {
+        if (!built) { renderNodes(n.c, depth + 1, box); built = true; }
+        box.hidden = !box.hidden; btn.setAttribute('aria-expanded', String(!box.hidden));
+        btn.querySelector('.chev').style.transform = box.hidden ? '' : 'rotate(90deg)';
+      });
+    }
+  }
+}
+const rootNodes = D.tree.slice().sort((a, b) => b.b - a.b);
+renderNodes(rootNodes, 0, treeEl);
+
+// apps
+const appsBody = document.querySelector('#apps tbody');
+let appFilter = 'all', sortKey = 'b', sortDir = -1;
+function pill(d) {
+  const n = days(d);
+  if (n == null) return '<span class="pill none">기록 없음</span>';
+  if (n <= 30) return `<span class="pill ok">${n}일 전</span>`;
+  if (n <= 90) return `<span class="pill warn">${n}일 전</span>`;
+  return `<span class="pill bad">${n}일 전</span>`;
+}
+function renderApps() {
+  let rows = D.apps.filter(a => a.b >= 50 * 1024 ** 2);
+  if (appFilter === 'old') rows = rows.filter(a => days(a.last) > 90);
+  if (appFilter === 'none') rows = rows.filter(a => !a.last);
+  if (appFilter === 'big') rows = rows.filter(a => a.b >= GB);
+  rows.sort((a, b) => {
+    const x = a[sortKey] ?? '', y = b[sortKey] ?? '';
+    return (x > y ? 1 : x < y ? -1 : 0) * sortDir;
+  });
+  appsBody.innerHTML = rows.map(a => `<tr><td>${esc(a.name)}<span class="sub">${esc(a.loc || '')}</span></td><td class="r num">${fmt(a.b)}</td><td>${pill(a.last)}<span class="sub">${esc(a.last || '')}</span></td><td>${esc(a.src || '—')}</td></tr>`).join('') ||
+    '<tr><td colspan="4">해당하는 앱이 없습니다.</td></tr>';
+}
+document.querySelectorAll('[data-f]').forEach(b => {
+  if (!b.id.startsWith('fa-')) return;
+  b.addEventListener('click', () => { appFilter = b.dataset.f; document.querySelectorAll('[id^="fa-"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); renderApps(); });
+});
+document.querySelectorAll('#apps thead th[data-k]').forEach(th => {
+  const go = () => { const k = th.dataset.k; sortDir = sortKey === k ? -sortDir : (k === 'name' ? 1 : -1); sortKey = k; renderApps(); };
+  th.addEventListener('click', go); th.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+});
+renderApps();
+
+// appdata
+const adBody = document.querySelector('#appdata tbody');
+let adFilter = 'orphan';
+function renderAd() {
+  const rows = D.appdata.filter(r => adFilter === 'all' || !r.installed);
+  adBody.innerHTML = rows.map(r => `<tr><td><span class="num" style="font-size:.8rem;overflow-wrap:anywhere">${esc(r.p)}</span></td><td class="r num">${fmt(r.b)}</td><td>${pill(r.last)}</td><td>${r.installed ? '<span class="pill ok">있음</span>' : '<span class="pill warn">연결된 앱 없음</span>'}</td></tr>`).join('');
+}
+document.querySelectorAll('[id^="fd-"]').forEach(b => b.addEventListener('click', () => { adFilter = b.dataset.f; document.querySelectorAll('[id^="fd-"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); renderAd(); }));
+renderAd();
+
+// notes numbers
+document.getElementById('n-hib').textContent = fmt(D.extra.hiberfil);
+document.getElementById('n-page').textContent = fmt(D.extra.pagefile);
+document.getElementById('n-claude').textContent = fmt(D.extra.claude);
+document.getElementById('n-codex').textContent = fmt(D.extra.codex);
+document.getElementById('n-codexs').textContent = fmt(D.extra.codexSessions);
+document.getElementById('n-codexi').textContent = fmt(D.extra.codexImages);
+</script>

@@ -1,0 +1,9 @@
+{
+  "name": "ui-design",
+  "version": "1.0.0",
+  "description": "UI 디자인 개선 스킬 (unslop, CC BY 4.0 · Damir Sokolovsky)",
+  "author": {
+    "name": "ImGdevel"
+  },
+  "skills": "./skills"
+}

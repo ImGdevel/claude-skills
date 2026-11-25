@@ -1,0 +1,28 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "my-skills",
+  "description": "개인 Claude Code 스킬 모음. 주제별 플러그인으로 묶어 켜고 끈다.",
+  "owner": {
+    "name": "ImGdevel"
+  },
+  "plugins": [
+    {
+      "name": "dev-workflow",
+      "description": "개발 작업 파이프라인 스킬 (verified-build)",
+      "source": "./plugins/dev-workflow",
+      "category": "development"
+    },
+    {
+      "name": "system-tools",
+      "description": "Windows 시스템 점검 도구 (disk-report)",
+      "source": "./plugins/system-tools",
+      "category": "productivity"
+    },
+    {
+      "name": "ui-design",
+      "description": "UI 디자인 개선 스킬 (unslop, CC BY 4.0 · Damir Sokolovsky)",
+      "source": "./plugins/ui-design",
+      "category": "design"
+    }
+  ]
+}

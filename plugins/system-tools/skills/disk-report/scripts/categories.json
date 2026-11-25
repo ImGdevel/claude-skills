@@ -1,0 +1,24 @@
+{
+  "_help": "Paths are relative to the drive root. {U} = user profile (e.g. Users\\name). Order matters: first match wins. Anything not listed falls into '기타 앱 · 데이터'. Game libraries (Steam, Epic, Riot) found on the drive are added to '게임' automatically.",
+  "categories": [
+    { "name": "게임", "note": "게임 본체와 런처.", "games": true,
+      "paths": ["Games", "Program Files\\GRYPHLINK", "Program Files\\Riot Vanguard", "Riot Games", "{U}\\AppData\\Roaming\\XXMI Launcher", "{U}\\AppData\\Roaming\\ModrinthApp", "{U}\\AppData\\Roaming\\.minecraft", "{U}\\AppData\\LocalLow\\Gryphline", "Program Files (x86)\\Steam", "Program Files\\Epic Games", "Program Files (x86)\\Epic Games", "ProgramData\\Epic"] },
+    { "name": "Docker · WSL (리눅스 가상 디스크)", "note": "Docker와 WSL이 쓰는 가상 디스크 파일. 안에서 지워도 파일 크기는 저절로 줄지 않습니다.",
+      "paths": ["{U}\\AppData\\Local\\Docker", "{U}\\AppData\\Local\\wsl", "Program Files\\Docker", "Program Files\\WSL", "ProgramData\\DockerDesktop"] },
+    { "name": "개발 도구 (Unity · VS · JetBrains · SDK)", "note": "편집기, 빌드 도구, 패키지 캐시(npm, Gradle, pip 등).",
+      "paths": ["Program Files\\Unity", "Program Files\\Unity Hub", "Program Files\\Microsoft Visual Studio", "Program Files (x86)\\Microsoft Visual Studio", "Program Files\\JetBrains", "Program Files (x86)\\Windows Kits", "Program Files\\dotnet", "Program Files (x86)\\dotnet", "Program Files\\Git", "Program Files\\Microsoft VS Code", "Program Files\\Blender Foundation", "{U}\\.gradle", "{U}\\.rustup", "{U}\\.cargo", "{U}\\.m2", "{U}\\.nuget", "{U}\\tools", "{U}\\.cache", "{U}\\.vscode", "{U}\\AppData\\Local\\npm-cache", "{U}\\AppData\\Roaming\\npm", "{U}\\AppData\\Local\\ms-playwright", "{U}\\AppData\\Roaming\\Python", "{U}\\AppData\\Local\\pip", "{U}\\AppData\\Local\\uv", "{U}\\AppData\\Roaming\\Code", "{U}\\AppData\\Local\\Unity", "{U}\\AppData\\Roaming\\UnityHub", "{U}\\AppData\\Local\\JetBrains", "{U}\\AppData\\Local\\AzureFunctionsTools"] },
+    { "name": "AI 도구 데이터 (Claude · Codex · ComfyUI)", "note": "AI 앱의 대화 기록, 작업 폴더, 모델·생성 이미지.",
+      "paths": ["{U}\\AppData\\Local\\Claude-Data", "{U}\\AppData\\Roaming\\Claude", "{U}\\.claude", "{U}\\.codex", "{U}\\AppData\\Local\\OpenAI", "{U}\\AppData\\Local\\Comfy-Desktop", "{U}\\AppData\\Roaming\\Comfy Desktop", "{U}\\AppData\\Roaming\\ComfyUI", "{U}\\AppData\\Local\\hermes", "{U}\\AppData\\Roaming\\orca", "{U}\\AppData\\Local\\Programs\\orca"] },
+    { "name": "내 작업 · 문서 (workspace · 다운로드 · 바탕화면)", "note": "직접 만든 파일과 내려받은 파일.",
+      "paths": ["{U}\\workspace", "{U}\\Downloads", "{U}\\Desktop", "{U}\\Documents", "{U}\\Pictures", "{U}\\Videos", "{U}\\Music", "{U}\\OneDrive"] },
+    { "name": "브라우저 · 일반 앱 데이터", "note": "Chrome 프로필, Notion, 한컴오피스 같은 일반 앱과 그 데이터.",
+      "paths": ["{U}\\AppData\\Local\\Google", "{U}\\AppData\\Roaming\\Notion", "{U}\\AppData\\Local\\Microsoft", "{U}\\AppData\\Roaming\\discord", "{U}\\AppData\\Local\\Discord", "{U}\\AppData\\Roaming\\Figma", "{U}\\AppData\\Local\\Figma", "{U}\\AppData\\Local\\GitHubDesktop", "Program Files\\Google", "Program Files (x86)\\Google", "Program Files (x86)\\Microsoft", "Program Files (x86)\\HNC", "{U}\\AppData\\Local\\Wondershare", "ProgramData\\Wondershare Filmora"] },
+    { "name": "그래픽 드라이버 · 하드웨어 (NVIDIA 등)", "note": "NVIDIA 드라이버, 셰이더 캐시, 메인보드·오디오 유틸리티.",
+      "paths": ["ProgramData\\NVIDIA Corporation", "ProgramData\\NVIDIA", "{U}\\AppData\\Local\\NVIDIA", "Program Files\\NVIDIA Corporation", "Program Files (x86)\\NVIDIA Corporation", "Program Files\\Realtek", "Program Files (x86)\\Realtek", "Program Files (x86)\\MSI", "Program Files\\MSI", "ProgramData\\Intel Package Cache {1CEAC85D-2590-4760-800F-8DE5E91F3700}"] },
+    { "name": "Microsoft Store 앱 · 설치 캐시", "note": "Store 앱 본체(WindowsApps)와 앱별 데이터, 설치 프로그램 캐시.",
+      "paths": ["Program Files\\WindowsApps", "{U}\\AppData\\Local\\Packages", "ProgramData\\Package Cache", "ProgramData\\Microsoft"] },
+    { "name": "휴지통", "note": "지운 파일이 아직 남아 있는 곳. 비우면 바로 확보됩니다.", "paths": ["$Recycle.Bin"] },
+    { "name": "Windows 시스템", "note": "Windows 폴더와 복구 도구. 직접 지우지 마세요.", "paths": ["Windows", "$WinREAgent", "$SysReset", "Recovery"] },
+    { "name": "최대 절전 · 가상 메모리 파일", "note": "hiberfil.sys와 pagefile.sys. 아래 \"자주 묻는 것\" 참고.", "paths": ["(root files)"] }
+  ]
+}

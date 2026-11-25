@@ -1,0 +1,9 @@
+{
+  "name": "system-tools",
+  "version": "1.0.0",
+  "description": "Windows 시스템 점검 도구 (disk-report)",
+  "author": {
+    "name": "ImGdevel"
+  },
+  "skills": "./skills"
+}
